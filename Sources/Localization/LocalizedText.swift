@@ -12,6 +12,7 @@ import SwiftUI
 ///
 /// ```swift
 /// LocalizedText("welcome_title")
+/// LocalizedText("items_count", 5)
 /// ```
 public struct LocalizedText: View {
     @Environment(LocalizationManager.self) private var l10n
@@ -24,13 +25,28 @@ public struct LocalizedText: View {
     }
 
     public var body: some View {
-        Text(l10n.string(key, arguments))
+        Text(l10n.string(key, arguments: arguments))
     }
 }
 
 public extension View {
-    /// Injects a `LocalizationManager` into the environment for this hierarchy.
-    func localization(_ manager: LocalizationManager) -> some View {
+    /// Injects a `LocalizationManager` **and** the matching `\.locale` into the
+    /// environment, so localized strings, dates, numbers, and plurals all follow
+    /// the selected language. The one modifier you need at the app root.
+    func localized(_ manager: LocalizationManager = .shared) -> some View {
         environment(manager)
+            .environment(\.locale, manager.locale)
+    }
+}
+
+public extension String {
+    /// Localizes the receiver as a key through the shared `LocalizationManager`.
+    @MainActor var localized: String {
+        LocalizationManager.shared(self)
+    }
+
+    /// Localizes and formats with arguments through the shared manager.
+    @MainActor func localized(_ arguments: CVarArg...) -> String {
+        LocalizationManager.shared.string(self, arguments: arguments)
     }
 }
