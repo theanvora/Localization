@@ -40,7 +40,7 @@ public final class LocalizationManager {
     @ObservationIgnored private var bundle: Bundle
     @ObservationIgnored private let sourceBundle: Bundle
     @ObservationIgnored private let systemWide: Bool
-    @ObservationIgnored private let storeKey = "anvora.localization.language"
+    @ObservationIgnored private let storeKey = "anvyx.localization.language"
 
     /// - Parameters:
     ///   - bundle: where `.lproj` folders live (`.main`, or `.module` for a package).

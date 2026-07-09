@@ -1,11 +1,11 @@
 # Localization
 
 Instant, restart-free in-app language switching for iOS — tap a language and the
-**entire app** changes immediately. Powered by the Observation framework (iOS 26+)
+**entire app** changes immediately. Powered by the Observation framework (iOS 17+)
 and works with both legacy `.strings` and modern **String Catalogs (`.xcstrings`)**.
 
 [![Swift](https://img.shields.io/badge/Swift-5.9+-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/iOS-26%2B-blue.svg)](https://developer.apple.com/ios/)
+[![Platform](https://img.shields.io/badge/iOS-17%2B-blue.svg)](https://developer.apple.com/ios/)
 [![SPM](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
 
 ## Highlights
@@ -22,7 +22,7 @@ and works with both legacy `.strings` and modern **String Catalogs (`.xcstrings`
 ## Installation
 
 ```swift
-.package(url: "https://github.com/anvyxhq/Localization.git", from: "2.0.0")
+.package(url: "https://github.com/anvyxhq/Localization.git", branch: "main")
 ```
 
 ## Setup
@@ -31,7 +31,7 @@ Add `.lproj` files (or a String Catalog) to your **app** target — e.g.
 `en.lproj/Localizable.strings`, `vi.lproj/Localizable.strings` — then:
 
 ```swift
-import Localization
+import AnvyxLocalizationKit
 
 @main
 struct MyApp: App {
@@ -80,7 +80,7 @@ language — no app relaunch. Pass `systemWide: false` to limit switching to
 
 ## Requirements
 
-- iOS 26.0+ · Swift 5.9+
+- iOS 17+ · Swift 5.9+
 
 ## License
 
