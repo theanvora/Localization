@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Localization
+@testable import AnvyxLocalizationKit
 
 @MainActor
 final class LocalizationTests: XCTestCase {

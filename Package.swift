@@ -7,10 +7,10 @@ let package = Package(
         .iOS(.v17)
     ],
     products: [
-        .library(name: "Localization", targets: ["Localization"]),
+        .library(name: "AnvyxLocalizationKit", targets: ["AnvyxLocalizationKit"]),
     ],
     targets: [
-        .target(name: "Localization"),
-        .testTarget(name: "LocalizationTests", dependencies: ["Localization"]),
+        .target(name: "AnvyxLocalizationKit"),
+        .testTarget(name: "AnvyxLocalizationKitTests", dependencies: ["AnvyxLocalizationKit"]),
     ]
 )
