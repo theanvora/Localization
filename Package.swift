@@ -1,5 +1,12 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.2
 import PackageDescription
+
+let concurrencyBaseline: [SwiftSetting] = [
+    .swiftLanguageMode(.v6),
+    .defaultIsolation(nil),
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+    .enableUpcomingFeature("InferIsolatedConformances"),
+]
 
 let package = Package(
     name: "Localization",
@@ -10,7 +17,7 @@ let package = Package(
         .library(name: "AnvyxLocalizationKit", targets: ["AnvyxLocalizationKit"]),
     ],
     targets: [
-        .target(name: "AnvyxLocalizationKit"),
-        .testTarget(name: "AnvyxLocalizationKitTests", dependencies: ["AnvyxLocalizationKit"]),
+        .target(name: "AnvyxLocalizationKit", swiftSettings: concurrencyBaseline),
+        .testTarget(name: "AnvyxLocalizationKitTests", dependencies: ["AnvyxLocalizationKit"], swiftSettings: concurrencyBaseline),
     ]
 )
