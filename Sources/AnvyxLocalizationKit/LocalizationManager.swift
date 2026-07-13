@@ -40,6 +40,7 @@ public final class LocalizationManager {
     @ObservationIgnored private var bundle: Bundle
     @ObservationIgnored private let sourceBundle: Bundle
     @ObservationIgnored private let systemWide: Bool
+    @ObservationIgnored private let persistsSelection: Bool
     @ObservationIgnored private let storeKey = "anvyx.localization.language"
 
     /// - Parameters:
@@ -48,11 +49,14 @@ public final class LocalizationManager {
     ///   - systemWide: when `true` (default), swizzles `Bundle.main` so even plain
     ///     `Text("key")` / `NSLocalizedString` switch instantly. Set `false` to only
     ///     affect `LocalizedText` / `l10n(...)` lookups.
-    public init(bundle: Bundle = .main, defaultLanguage: String = "en", systemWide: Bool = true) {
+    public init(bundle: Bundle = .main, defaultLanguage: String = "en", systemWide: Bool = true, persistsSelection: Bool = true) {
         self.sourceBundle = bundle
         self.systemWide = systemWide
-        let stored = UserDefaults.standard.string(forKey: storeKey)
-        let device = Locale.preferredLanguages.first.map { String($0.prefix(2)) }
+        self.persistsSelection = persistsSelection
+        // Scoped (non-persisting) managers force `defaultLanguage`; the global one
+        // resolves stored → device → default.
+        let stored = persistsSelection ? UserDefaults.standard.string(forKey: storeKey) : nil
+        let device = persistsSelection ? Locale.preferredLanguages.first.map { String($0.prefix(2)) } : nil
         let initial = stored ?? device ?? defaultLanguage
         self.language = initial
         self.bundle = Self.resolveBundle(for: initial, in: bundle) ?? bundle
@@ -71,7 +75,7 @@ public final class LocalizationManager {
         guard code != language else { return }
         bundle = Self.resolveBundle(for: code, in: sourceBundle) ?? sourceBundle
         language = code
-        UserDefaults.standard.set(code, forKey: storeKey)
+        if persistsSelection { UserDefaults.standard.set(code, forKey: storeKey) }
         applySystemWide()
     }
 
