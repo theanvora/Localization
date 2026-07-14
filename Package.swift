@@ -18,6 +18,11 @@ let package = Package(
     ],
     targets: [
         .target(name: "AnvyxLocalizationKit", swiftSettings: concurrencyBaseline),
-        .testTarget(name: "AnvyxLocalizationKitTests", dependencies: ["AnvyxLocalizationKit"], swiftSettings: concurrencyBaseline),
+        .testTarget(
+            name: "AnvyxLocalizationKitTests",
+            dependencies: ["AnvyxLocalizationKit"],
+            resources: [.copy("Resources/en.lproj"), .copy("Resources/fr.lproj")],
+            swiftSettings: concurrencyBaseline
+        ),
     ]
 )

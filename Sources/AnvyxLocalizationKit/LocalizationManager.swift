@@ -42,6 +42,18 @@ public final class LocalizationManager {
     @ObservationIgnored private let systemWide: Bool
     @ObservationIgnored private let persistsSelection: Bool
     @ObservationIgnored private let storeKey = "anvyx.localization.language"
+    @ObservationIgnored private let defaultLanguage: String
+    @ObservationIgnored private var baseBundle: Bundle
+
+    /// Optional on-device translator for **missing** keys. Inject it (e.g. wiring
+    /// `TranslationKit`) and any untranslated string is auto-translated from the
+    /// base language, cached, and the view re-renders when the result arrives.
+    /// Keeps this package dependency-free — the provider is supplied by the app.
+    @ObservationIgnored
+    public var translationProvider: (@Sendable (_ text: String, _ target: Locale.Language) async -> String?)?
+    // Tracked so filling a translation re-renders views that read the string.
+    private var translationCache: [String: String] = [:]
+    @ObservationIgnored private var inFlight: Set<String> = []
 
     /// - Parameters:
     ///   - bundle: where `.lproj` folders live (`.main`, or `.module` for a package).
@@ -53,6 +65,8 @@ public final class LocalizationManager {
         self.sourceBundle = bundle
         self.systemWide = systemWide
         self.persistsSelection = persistsSelection
+        self.defaultLanguage = defaultLanguage
+        self.baseBundle = Self.resolveBundle(for: defaultLanguage, in: bundle) ?? bundle
         // Scoped (non-persisting) managers force `defaultLanguage`; the global one
         // resolves stored → device → default.
         let stored = persistsSelection ? UserDefaults.standard.string(forKey: storeKey) : nil
@@ -106,8 +120,36 @@ public final class LocalizationManager {
     }
 
     private func localized(_ key: String, _ arguments: [CVarArg]) -> String {
-        let format = bundle.localizedString(forKey: key, value: key, table: nil)
+        let missing = "\u{1}anvyx.missing\u{1}"
+        var format = bundle.localizedString(forKey: key, value: missing, table: nil)
+        if format == missing {
+            format = translationFallback(for: key)   // base text, or a cached auto-translation
+        }
         return arguments.isEmpty ? format : String(format: format, locale: locale, arguments: arguments)
+    }
+
+    /// Resolve a missing key: use a cached on-device translation if present,
+    /// otherwise return the base-language text and kick off a translation.
+    private func translationFallback(for key: String) -> String {
+        let cacheKey = "\(language)\u{1}\(key)"
+        if let cached = translationCache[cacheKey] { return cached }
+
+        let base = baseBundle.localizedString(forKey: key, value: key, table: nil)
+        guard translationProvider != nil, language != defaultLanguage, base != key else { return base }
+        requestTranslation(cacheKey: cacheKey, text: base, target: language)
+        return base   // show base text until the translation arrives
+    }
+
+    private func requestTranslation(cacheKey: String, text: String, target: String) {
+        guard !inFlight.contains(cacheKey), let provider = translationProvider else { return }
+        inFlight.insert(cacheKey)
+        let language = Locale.Language(identifier: target)
+        Task { [weak self] in
+            let translated = await provider(text, language)
+            guard let self else { return }
+            self.inFlight.remove(cacheKey)
+            if let translated { self.translationCache[cacheKey] = translated }   // → re-render
+        }
     }
 
     private static func resolveBundle(for code: String, in source: Bundle) -> Bundle? {
